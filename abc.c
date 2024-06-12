@@ -10,13 +10,14 @@
 int is_valid_file_path(const char *path) 
 {
     // Check each character in the string
-    for (const char *p = path; *p; p++) {
+    for (const char *p = path; *p; p++) 
+    {
         if (!isalnum((unsigned char)*p) && *p != '.' && *p != '-' && *p != '_') 
         {
-            // If the character is not alphanumeric or one of the allowed characters, return invalid
             return 0;
         }
     }
+    
     return 1;
 }
 
@@ -28,7 +29,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "Usage: %s <file_path>\n", argv[0]);
         return -1;
     }
-
+    
     // Validate the file path
     if (!is_valid_file_path(argv[1])) {
         fprintf(stderr, "Invalid file path.\n");
@@ -39,13 +40,11 @@ int main(int argc, char** argv)
     char cmd[BUFSIZE];
     int written = snprintf(cmd, BUFSIZE, "wc -c < '%s'", argv[1]);
 
-    // Check if the command was truncated or an error occurred
     if (written >= BUFSIZE || written < 0) {
         fprintf(stderr, "Command buffer too small or error occurred.\n");
         return -1;
     }
     
-    // Execute the command
     system(cmd);
     return 0;
 }
