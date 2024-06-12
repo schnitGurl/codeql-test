@@ -2,32 +2,25 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #define BUFSIZE 256
 
-// Function to escape shell metacharacters
-void sanitize_input(const char* input, char* sanitized, size_t buf_size)
+int is_valid_file_path(const char* path)
 {
-    const char* metacharacters = " '\";|&<>$\\`";
-    size_t i, j = 0;
-
-    for (i = 0; i < strlen(input) && j < buf_size - 1; ++i)
+    struct stat statbuf;
+    if (stat(path, &statbuf) != 0)
     {
-        if (strchr(metacharacters, input[i]))
-        {
-            if (j < buf_size - 2)
-            {
-                sanitized[j++] = '\\';
-            }
-            else
-            {
-
-                break;
-            }
-        }
-        sanitized[j++] = input[i];
+        return 0;
     }
-    sanitized[j] = '\0';
+
+    if (S_ISREG(statbuf.st_mode))
+    {
+        // The path is a regular file
+        return 1;
+    }
+    // The path is not a regular file
+    return 0;
 }
 
 // This program prints the size of a specified file in bytes
@@ -35,17 +28,21 @@ int main(int argc, char** argv)
 {
     // Ensure that the user supplied exactly one command line argument
     if (argc != 2) {
-        fprintf(stderr, "Please provide a file address (using only one command as input): %s <file_path>\n", argv[0]);
+        fprintf(stderr, "Usage: %s <file_path>\n", argv[0]);
         return -1;
     }
 
-    char sanitized_input[BUFSIZE];
-    sanitize_input(argv[1], sanitized_input, BUFSIZE);
+    // Check if the input is a valid file path
+    if (!is_valid_file_path(argv[1])) {
+        fprintf(stderr, "Invalid file path.\n");
+        return -1;
+    }
 
     // Prepare the command buffer, ensuring not to exceed BUFSIZE
     char cmd[BUFSIZE];
-    int written = snprintf(cmd, BUFSIZE, "wc -c < '%s'", sanitized_input);
+    int written = snprintf(cmd, BUFSIZE, "wc -c < '%s'", argv[1]);
 
+    // Check if the command was truncated or an error occurred
     if (written >= BUFSIZE || written < 0) {
         fprintf(stderr, "Command buffer too small or error occurred.\n");
         return -1;
