@@ -1,2 +1,2 @@
 all:
-	gcc -o main SL3ex1.c
+	gcc -o main ex1SL2.c
